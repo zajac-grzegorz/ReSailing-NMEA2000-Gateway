@@ -1,0 +1,37 @@
+{
+    "app_name": "Re Sailing Gateway",
+    "app_hostname": "ReSailingGateway",
+
+    "ap_ssid": "ReGateway",
+    "ap_pass": "",
+    "ap_ip": "192.168.15.1",
+    "ap_subnet": "255.255.255.0",
+    "dns_name": "re",
+
+    "n2k_node_addr": "38",
+
+    "sta_ssid": "YourSSID",
+    "sta_pass": "YourPassword",
+
+    "ser1_name": "Server 1",
+    "ser1_type": "tcp",
+    "ser1_port": "7050",
+    "ser1_enable": "true",
+    "ser1_format": "n2k_ngt",
+    
+    "ser2_name": "Server 2",
+    "ser2_type": "tcp",
+    "ser2_port": "4444",
+    "ser2_enable": "true",
+    "ser2_format": "n2k_bin",
+
+    "ser3_name": "Server 3",
+    "ser3_type": "udp",
+    "ser3_port": "8050",
+    "ser3_enable": "true",
+    "ser3_format": "json",
+
+    "sys_restore": "false",
+    "sys_webserial": "true",
+    "sys_evt_int": "1000"
+}

@@ -1,0 +1,37 @@
+{
+    "app_name": "Re Sailing N2K Sender",
+    "app_hostname": "ReSailingN2kSender",
+
+    "ap_ssid": "ReN2kSender",
+    "ap_pass": "",
+    "ap_ip": "192.168.100.1",
+    "ap_subnet": "255.255.255.0",
+    "dns_name": "sender",
+
+    "n2k_node_addr": "34",
+
+    "sta_ssid": "YourSSID",
+    "sta_pass": "YourPassword",
+
+    "ser1_name": "Server 1",
+    "ser1_type": "",
+    "ser1_port": "",
+    "ser1_enable": "false",
+    "ser1_format": "",
+    
+    "ser2_name": "Server 2",
+    "ser2_type": "",
+    "ser2_port": "",
+    "ser2_enable": "false",
+    "ser2_format": "",
+
+    "ser3_name": "Server 3",
+    "ser3_type": "",
+    "ser3_port": "",
+    "ser3_enable": "false",
+    "ser3_format": "",
+
+    "sys_restore": "false",
+    "sys_webserial": "true",
+    "sys_evt_int": "1000"
+}
