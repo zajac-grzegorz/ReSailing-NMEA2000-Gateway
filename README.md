@@ -13,12 +13,12 @@
 * NMEA0183
 * custom defined JSON
 
-**Mayor features:**
+**Major features:**
 * Data is available on TCP and/or UDP asynchronous servers (up to 3 servers can be configured)
 * All formats except JSON tested with **OpenCPN**.
 * Filters based on white- and black- lists (PGN filtering)
 * Configuration through JSON files
-* EventSource endpoint where N2K data in JSON is published
+* EventSource endpoint where boat data in JSON is published
 * Sample wind instruments through http://re.local/app/index.html
 * Web GUI can be easily added, ESPUI framework is integrated
 * Option to build as Actisense listener/sender - to work with [NMEA_Simulator](https://www.kave.fi/Apps/NMEA-Simulator/NMEA-Simulator.7z)
