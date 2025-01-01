@@ -1,6 +1,7 @@
 # ReSailing-NMEA2000-Gateway
 ## Multi-format NMEA2000 WiFi Gateway for ESP32.
 
+**This is work in progress - more detailed instruction to come**
 
 **Provides output data in most popular formats:**
 * Actisense NGT
@@ -32,6 +33,7 @@ That project was possible due to magnificent work done by Authors of the followi
 * https://github.com/mathieucarbou/MycilaConfig
 * https://github.com/mathieucarbou/MycilaLogger
 * https://github.com/s00500/ESPUI
+* https://github.com/konvajs/konva
 * https://github.com/canboat/canboatjs
 * https://github.com/canboat/canboat
 * https://github.com/aldas/go-nmea-client
