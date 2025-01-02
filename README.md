@@ -1,7 +1,8 @@
 # ReSailing-NMEA2000-Gateway
 ## Multi-format NMEA2000 WiFi Gateway for ESP32.
 
-**This is work in progress - more detailed instruction to come**
+> [!IMPORTANT]
+> **This is work in progress - more detailed instruction to come**
 
 **Provides output data in most popular formats:**
 * Actisense NGT
