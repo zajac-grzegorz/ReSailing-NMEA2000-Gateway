@@ -201,7 +201,7 @@ function updateInstrument(data) {
 }
 
 if (!!window.EventSource) {
-  let source = new EventSource('http://192.168.68.114/re');
+  let source = new EventSource('/re');
 
   source.addEventListener('open', function (e) {
     log.info("Events Connected");
