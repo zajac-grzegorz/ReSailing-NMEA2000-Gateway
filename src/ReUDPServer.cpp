@@ -15,5 +15,6 @@ void ReUDPServer::start()
 void ReUDPServer::sendData(char* outMsgBuf, size_t& size)
 {
    m_server->broadcast((unsigned char*) outMsgBuf, size);
+   m_stats.bytesSent += size;
 }
 

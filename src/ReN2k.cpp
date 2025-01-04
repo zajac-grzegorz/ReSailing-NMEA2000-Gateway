@@ -8,7 +8,7 @@ ReN2k::ReN2k(tNMEA2000 &n2kObj) : n2k(n2kObj), nextUpdateTime(0)
    isReadStream = false;
 }
 
-void ReN2k::init()
+void ReN2k::init(Stream* forwardStream)
 {
    // Get node address stored in the preferences
    nodeAddress = config.getInt(key_n2k_node_addr);
@@ -57,11 +57,12 @@ void ReN2k::init()
    n2k.ExtendTransmitMessages(transmitMessages);
    n2k.ExtendReceiveMessages(receiveMessages);
 
-#ifdef RE_BUILD_AS_SENDER
-   // Stream* ForwardStream=&Serial;
-   // Serial.begin(115200);
-   // n2k.SetForwardStream(ForwardStream);
-#endif
+   if (nullptr != forwardStream)
+   {
+      n2k.SetForwardStream(forwardStream);
+      n2k.SetForwardOwnMessages(true);
+      n2k.SetForwardSystemMessages();
+   }
 }
 
 void ReN2k::open()
@@ -88,11 +89,14 @@ void ReN2k::update()
 
 void ReN2k::setActisenseReader(N2kStream* readStream, void (*msgHandler)(const tN2kMsg &n2kMsg))
 {
-   actisenseReader.SetReadStream(readStream);
-   actisenseReader.SetDefaultSource(75);
-   actisenseReader.SetMsgHandler(msgHandler); 
+   if (readStream != nullptr)
+   {
+      actisenseReader.SetReadStream(readStream);
+      actisenseReader.SetDefaultSource(75);
+      actisenseReader.SetMsgHandler(msgHandler); 
 
-   isReadStream = true;
+      isReadStream = true;
+   }
 }
 
 void ReN2k::attachMessageHandler(tNMEA2000::tMsgHandler* handler)

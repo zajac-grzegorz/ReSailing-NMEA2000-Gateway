@@ -11,7 +11,7 @@ class ReN2k
     public:
 
         ReN2k(tNMEA2000& n2kObj);
-        void init();
+        void init(Stream* forwardStream);
         void open();
         void update();
         void setActisenseReader(N2kStream* readStream, void (*msgHandler)(const tN2kMsg &n2kMsg)); 

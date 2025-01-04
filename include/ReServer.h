@@ -5,6 +5,7 @@
 #include "ReCommon.h"
 #include "ReConfig.h"
 #include "ReN2kConverterCreator.h"
+#include "ReServerStatistics.h"
 
 #define MaxActisenseMsgBuf 810
 
@@ -36,6 +37,7 @@ class ReServer : public tNMEA2000::tMsgHandler
       bool isEnabled() { return m_enabled; }
       int getPort() { return m_port; }
       ReOutputFormat getFmt() { return m_fmt; }
+      ReServerStatistics getStatictics() { return m_stats; }
 
    protected:
 
@@ -47,6 +49,7 @@ class ReServer : public tNMEA2000::tMsgHandler
       ReOutputFormat m_fmt;
       bool m_enabled;
       bool m_client_connected;
+      ReServerStatistics m_stats;
       std::unique_ptr<ReN2kConverter> m_converter;
 
    private:

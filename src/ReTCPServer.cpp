@@ -21,9 +21,10 @@ void ReTCPServer::sendData(char* outMsgBuf, size_t& size)
       // reply to client
       if (client->space() >= size + 10 && client->canSend())
       {
-         // char reply[60] ={0,};
-         // sprintf(reply, "Pri:%d, PGN:%ld, Src:%d, Len:%d\n", N2kMsg.Priority, N2kMsg.PGN, N2kMsg.Source, N2kMsg.DataLen);
          client->write(outMsgBuf, size);
+
+         // Data can be sent to multiple clients so count bytesSent total value
+         m_stats.bytesSent += size;
       }
    }
 }

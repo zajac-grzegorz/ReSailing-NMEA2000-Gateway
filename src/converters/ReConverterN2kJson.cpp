@@ -109,7 +109,7 @@ void ReConverterN2kJson::HandleHeading(const tN2kMsg& N2kMsg)
          if (!N2kIsNA(_Variation))
             m_data.Variation = _Variation; // Update Variation
          if (!N2kIsNA(m_data.Heading) && !N2kIsNA(m_data.Variation))
-            m_data.Heading += m_data.Variation;
+            m_data.Heading += m_data.Variation; // Heading will store the TRUE heading
       }
 
       // bug in NMEA_Simulator sometimes sending heading data > 360 degrees
@@ -160,7 +160,7 @@ void ReConverterN2kJson::HandleCOGSOG(const tN2kMsg& N2kMsg)
    {
       if (HeadingReference == N2khr_magnetic)
       {
-         m_data.COG += m_data.Variation;
+         m_data.COG += m_data.Variation; // COG will store the TRUE COG
       }
    }
 }

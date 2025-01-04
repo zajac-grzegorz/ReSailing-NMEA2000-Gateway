@@ -208,7 +208,7 @@ void ReConverterN2kNmea0183::HandleHeading(const tN2kMsg& N2kMsg)
          if (!N2kIsNA(_Variation))
             Variation = _Variation; // Update Variation
          if (!N2kIsNA(Heading) && !N2kIsNA(Variation))
-            Heading -= Variation;
+            Heading += Variation; // Heading will store the TRUE heading
       }
       LastHeadingTime = millis();
 
@@ -298,7 +298,7 @@ void ReConverterN2kNmea0183::HandleCOGSOG(const tN2kMsg& N2kMsg)
          MCOG = COG;
          if (!N2kIsNA(Variation))
          {
-            COG -= Variation;
+            COG += Variation; // COG will store the TRUE COG
          }
       }
       

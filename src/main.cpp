@@ -33,13 +33,21 @@ AsyncWebServer* server = nullptr;
 ReEventSource reEvents("/re");
 
 // Max 3 servers for stable performance
-std::vector<ReServer*> outServers;
+std::vector<ReServer*> reOutputServers;
+
+// UI wrapper object
+ReUI reUI(reOutputServers);
 
 // Setup N2k engine
 ReN2k n2k(NMEA2000); 
 
 // Stream for Actisense input data i.e. from NMEA_Simulator application
 N2kStream* readStream = nullptr;
+// Stream for Actisense output data i.e. to Actisense NMEA Reader application
+N2kStream* forwardStream = nullptr;
+
+// To allow log viewing over the web
+WebSerial webSerial;
 
 void configureWebSerial(bool enabled, AsyncWebServer* server)
 {
@@ -47,9 +55,9 @@ void configureWebSerial(bool enabled, AsyncWebServer* server)
    {
       if (nullptr != server)
       {
-         logger.forwardTo(&WebSerial);
-         WebSerial.setBuffer(256);
-         WebSerial.begin(server);
+         logger.forwardTo(&webSerial);
+         webSerial.setBuffer(256);
+         webSerial.begin(server);
 
          logger.debug(RE_TAG, "Using WebSerial logger");
       }
@@ -96,7 +104,7 @@ void createOutputServers()
             srv = new ReUDPServer(name, filtertype, filtervalue, port, outFmt, isEnabled);
          }
 
-         outServers.push_back(srv);
+         reOutputServers.push_back(srv);
          srv->start();
 
          // Attach each server to NMEA2000 message handlers list
@@ -110,15 +118,15 @@ void createOutputServers()
 void HandleStreamN2kMsg(const tN2kMsg& N2kMsg) 
 {
 // In dev test, data from USB Serial (i.e. from NMEA_Simulator) is converted to selected format on the TCP or UDP server 
-#ifdef RE_NMEA_SIMULATOR_INPUT_FOR_DEV_TEST
+#ifdef RE_N2K_SIMULATOR_INPUT_FOR_DEV_TEST
 
-   for (auto srv : outServers)
+   for (auto srv : reOutputServers)
    {
       srv->HandleMsg(N2kMsg);
    }
 
 #else 
-// By default data from USB Serial is converted to NMEA2000 message and send to the N2K bus
+   // By default data from USB Serial is converted to NMEA2000 message and send to the N2K bus
    NMEA2000.SendMsg(N2kMsg,-1);
 #endif
 }
@@ -132,24 +140,25 @@ void setup()
    LittleFS.begin();
 
    // Init USB serial ports (depending on the flag in platformio.ini)
-   Serial.begin(115200);
+#ifdef RE_N2K_TERMINAL_PORT
+   RE_N2K_TERMINAL_PORT.begin(115200);
+   logger.forwardTo(&RE_N2K_TERMINAL_PORT);
 
-#ifdef RE_NMEA_SIMULATOR_INPUT_PORT
-   if (RE_NMEA_SIMULATOR_INPUT_PORT == Serial1)
-   {
-      // Serial is used for logging in that case
-      logger.forwardTo(&Serial);
+   logger.debug(RE_TAG, "Using %s as N2K terminal serial", (RE_N2K_TERMINAL_PORT == Serial) ? "Serial" : "Serial1");
+#endif
 
-      logger.debug(RE_TAG, "Using Serial1 for input in Actisense format");
-      Serial1.begin(115200);
-   }
-   
-   if ((RE_NMEA_SIMULATOR_INPUT_PORT == Serial1) || (RE_NMEA_SIMULATOR_INPUT_PORT == Serial))
-   {
-      readStream = &RE_NMEA_SIMULATOR_INPUT_PORT;
-   }
-#else
-   logger.forwardTo(&Serial);
+#ifdef RE_N2K_INPUT_PORT
+   RE_N2K_INPUT_PORT.begin(115200);
+   readStream = &RE_N2K_INPUT_PORT;
+
+   logger.debug(RE_TAG, "Using %s as N2K input serial", (RE_N2K_INPUT_PORT == Serial) ? "Serial" : "Serial1");
+#endif
+
+#ifdef RE_N2K_OUTPUT_PORT
+   RE_N2K_OUTPUT_PORT.begin(115200);
+   forwardStream = &RE_N2K_OUTPUT_PORT;
+
+   logger.debug(RE_TAG, "Using %s as N2K output serial", (RE_N2K_OUTPUT_PORT == Serial) ? "Serial" : "Serial1");
 #endif
 
    // Load initial configuration data from JSON file - call at very beginning of setup()
@@ -159,7 +168,7 @@ void setup()
    initializeWifiConfiguration();
 
    // Build user interface with ESPUI library
-   constructUI();
+   reUI.construct();
 
    // Start ESPUI engine to display UI on the web page
    ESPUI.begin(config.get(key_app_name));
@@ -177,7 +186,7 @@ void setup()
    configureWebSerial(config.getBool("sys_webserial"), server);
 
    // Setup NMEA2000 library within ReN2k class
-   n2k.init();
+   n2k.init(forwardStream);
 
    // DO NOT change the place of calling below function!
    createOutputServers();
@@ -186,10 +195,7 @@ void setup()
    n2k.open();
 
    // Read stream is configured so use it for Actisense input from i.e. NMEA_Simulator application
-   if (readStream != nullptr)
-   {
-      n2k.setActisenseReader(readStream, HandleStreamN2kMsg);
-   }
+   n2k.setActisenseReader(readStream, HandleStreamN2kMsg);
 
    // Some delay to allow NMEA2000 initialize
    delay(200);

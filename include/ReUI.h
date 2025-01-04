@@ -1,5 +1,14 @@
 #pragma once
 
 #include <ESPUI.h>
+#include "ReServer.h"
 
-void constructUI();
+class ReUI
+{
+public:
+   ReUI(const std::vector<ReServer*>& reServers);
+   void construct();
+
+private:
+   const std::vector<ReServer*>& mReServers;
+};

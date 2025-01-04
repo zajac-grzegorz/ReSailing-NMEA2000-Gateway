@@ -62,6 +62,8 @@ void ReServer::HandleMsg(const tN2kMsg& N2kMsg)
 
       m_converter->convert(N2kMsg, outputBuffer.get(), size);
       sendData(outputBuffer.get(), size);
+
+      m_stats.pgnsProcessed++;
    }
 }
 
@@ -69,11 +71,23 @@ bool ReServer::filterMsgPGN(const unsigned long& pgn)
 {
    if (m_filter_type == "white")
    {
-      return (std::string::npos != m_filter_value.find(std::to_string(pgn)));
+      bool res = (std::string::npos != m_filter_value.find(std::to_string(pgn)));
+      if (res) 
+      {
+         m_stats.pgnsFilteredOut++;
+      }
+
+      return res; 
    }
    else if (m_filter_type == "black")
    {
-      return !(std::string::npos != m_filter_value.find(std::to_string(pgn)));
+      bool res = !(std::string::npos != m_filter_value.find(std::to_string(pgn)));
+      if (res) 
+      {
+         m_stats.pgnsFilteredOut++;
+      }
+
+      return res;
    }
    else
    {
