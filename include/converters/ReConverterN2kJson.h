@@ -16,6 +16,8 @@ private:
    tN2kScheduler m_nextUpdateTime;
    const unsigned long m_updatePeriod = 2000;
 
+   void normalizeAngle(double& angleInRad);
+
    void HandleSystemDateTime(const tN2kMsg &N2kMsg); // 126992
    void HandleRudderPosition(const tN2kMsg &N2kMsg); // 127245
    void HandleHeading(const tN2kMsg &N2kMsg);        // 127250
@@ -28,4 +30,5 @@ private:
    void HandleGNSS(const tN2kMsg &N2kMsg);           // 129029
    void HandleWind(const tN2kMsg &N2kMsg);           // 130306
    void HandleEnvParams(const tN2kMsg &N2kMsg);      // 130311
+   void HandleNavigationData(const tN2kMsg &N2kMsg); // 129284
 };

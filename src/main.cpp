@@ -208,10 +208,4 @@ void loop()
    // Never call "delay()" in the loop to not block async behavior of components
    n2k.update();
    reEvents.update();
-
-   // Dummy to empty input buffer to avoid board to stuck with e.g. NMEA Reader
-   // if (Serial.available())
-   // {
-   //    Serial.read();
-   // }
 }

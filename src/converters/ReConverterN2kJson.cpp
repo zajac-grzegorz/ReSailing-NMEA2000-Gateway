@@ -46,6 +46,9 @@ void ReConverterN2kJson::convert(const tN2kMsg& n2kMsg, char* output, size_t& si
       case 130310UL:
          HandleEnvParams(n2kMsg);
          break;
+      case 129284UL:
+         HandleNavigationData(n2kMsg);
+         break;
    }
 
    // data will be send to output every 2 seconds...
@@ -65,6 +68,17 @@ size_t ReConverterN2kJson::getMaxBufSize(const tN2kMsg& n2kMsg)
 {
    m_data.toJSON();
    return measureJson(m_data.doc) + 1 + 2 + BUF_RESERVE;  // add space for the '\0' + '\r\n'
+}
+
+void ReConverterN2kJson::normalizeAngle(double& angleInRad)
+{
+   double angleInDegrees = RadToDeg(angleInRad);
+
+   if (angleInDegrees >= 360)
+   {
+      angleInDegrees -= 360;
+      angleInRad = DegToRad(angleInDegrees);
+   }
 }
 
 void ReConverterN2kJson::HandleSystemDateTime(const tN2kMsg& N2kMsg)
@@ -100,25 +114,32 @@ void ReConverterN2kJson::HandleHeading(const tN2kMsg& N2kMsg)
    unsigned char SID;
    tN2kHeadingReference ref;
    double _Deviation = 0;
-   double _Variation;
+   double _Variation = 0;
+   double _Hdg = 0;
 
-   if (ParseN2kHeading(N2kMsg, SID, m_data.Heading, _Deviation, _Variation, ref))
+   if (ParseN2kHeading(N2kMsg, SID, _Hdg, _Deviation, _Variation, ref))
    {
+      m_data.Variation = !N2kIsNA(_Variation) ? _Variation : m_data.Variation; // Update Variation
+
       if (ref == N2khr_magnetic)
       {
-         if (!N2kIsNA(_Variation))
-            m_data.Variation = _Variation; // Update Variation
-         if (!N2kIsNA(m_data.Heading) && !N2kIsNA(m_data.Variation))
-            m_data.Heading += m_data.Variation; // Heading will store the TRUE heading
+         m_data.HeadingMag = _Hdg;
+         m_data.Heading = m_data.HeadingMag + m_data.Variation; // Heading will store the TRUE heading
+      }
+      else if (ref == N2khr_true)
+      {
+         m_data.Heading = _Hdg;
+         m_data.HeadingMag = m_data.Heading - m_data.Variation;
+      }
+      else
+      {
+         // possible N2khr_error or N2khr_Unavailable
+         return;
       }
 
       // bug in NMEA_Simulator sometimes sending heading data > 360 degrees
-      double hdgAng = RadToDeg(m_data.Heading);
-      if (hdgAng >= 360)
-      {
-         hdgAng -= 360;
-         m_data.Heading = DegToRad(hdgAng);
-      }
+      normalizeAngle(m_data.Heading);
+      normalizeAngle(m_data.HeadingMag);
    }
 }
 
@@ -154,13 +175,25 @@ void ReConverterN2kJson::HandlePosition(const tN2kMsg& N2kMsg)
 void ReConverterN2kJson::HandleCOGSOG(const tN2kMsg& N2kMsg)
 {
    unsigned char SID;
-   tN2kHeadingReference HeadingReference;
+   tN2kHeadingReference ref;
+   double _COG = 0;
   
-   if (ParseN2kCOGSOGRapid(N2kMsg, SID, HeadingReference, m_data.COG, m_data.SOG))
+   if (ParseN2kCOGSOGRapid(N2kMsg, SID, ref, _COG, m_data.SOG))
    {
-      if (HeadingReference == N2khr_magnetic)
+      if (ref == N2khr_magnetic)
       {
-         m_data.COG += m_data.Variation; // COG will store the TRUE COG
+         m_data.COGMag = _COG;
+         m_data.COG = m_data.COGMag + m_data.Variation; // COG will store the TRUE COG
+      }
+      else if (ref == N2khr_true)
+      {
+         m_data.COG = _COG;
+         m_data.COGMag = m_data.COG - m_data.Variation;
+      }
+      else
+      {
+         // possible N2khr_error or N2khr_Unavailable
+         return;
       }
    }
 }
@@ -199,18 +232,65 @@ void ReConverterN2kJson::HandleWind(const tN2kMsg& N2kMsg)
          m_data.AWA = WindAngle;
          m_data.AWS = WindSpeed;
       }
-      else if (WindReference == N2kWind_True_North)
+      // else if (WindReference == N2kWind_True_North)
+      // {
+      //    m_data.TWD = WindAngle;
+      //    m_data.TWS = WindSpeed;
+      // }
+      // else if (WindReference == N2kWind_Magnetic)
+      // {
+      //    m_data.TWDMag = WindAngle;
+      //    m_data.TWS = WindSpeed;
+      // }
+      // else if ((WindReference == N2kWind_True_water) || (WindReference == N2kWind_True_boat))
+      // {
+      //    m_data.TWA = WindAngle;
+      //    m_data.TWS = WindSpeed;
+      // }
+      else
       {
-         m_data.TWD = WindAngle;
-         m_data.TWS = WindSpeed;
-      }
-      else if (WindReference == N2kWind_True_water)
-      {
-         m_data.TWA = WindAngle;
-         m_data.TWS = WindSpeed;
+         // logger.debug(RE_TAG, "Wind type: %d", WindReference);
+
+         // We are only interested in aparent wind, all others are calculated below
+         return;
       }
 
-      calculateWindData(m_data.AWA, m_data.AWS, m_data.STW, m_data.Heading, m_data.TWA, m_data.TWD, m_data.TWS);
+      // Calculations will be made according to parameters set in config json file:
+      // - use magnetic or true values for HDG, COG, TWD
+      // - use HDG or COG
+      // - use STW or SOG
+      // default ares: true, HDG, STW
+
+      bool isDirectionMagnetic = (std::string(config.get(key_sys_dir_type)) == "magnetic");
+
+      double& TWDorMTWD = isDirectionMagnetic ? m_data.TWDMag : m_data.TWD;
+      double STWorSOG = m_data.STW;
+      double HDGorCOG = isDirectionMagnetic ? m_data.HeadingMag : m_data.Heading;
+      
+      std::string wndCalcBoatSpeed = config.get(key_wnd_calc_spd);
+      std::string wndCalcBoatHeading = config.get(key_wnd_calc_hdg);
+
+      if (wndCalcBoatHeading == "cog")
+      {
+         HDGorCOG = isDirectionMagnetic ? m_data.COGMag : m_data.COG;
+         // logger.debug(RE_TAG, "Using %s for wind calculations", isDirectionMagnetic ? "MCOG" : "COG");
+      }
+      else
+      {
+         // logger.debug(RE_TAG, "Using %s for wind calculations", isDirectionMagnetic ? "MHDG" : "HDG");
+      }
+
+      if (wndCalcBoatSpeed == "sog")
+      {
+         STWorSOG = m_data.SOG;
+         // logger.debug(RE_TAG, "Using SOG for wind calculations");
+      }
+      else
+      {
+         // logger.debug(RE_TAG, "Using STW for wind calculations");
+      }
+
+      calculateWindData(m_data.AWA, m_data.AWS, STWorSOG, HDGorCOG, m_data.TWA, TWDorMTWD, m_data.TWS);
 
       // Store max values for AWS and TWS
       // This implements a low pass filter to eliminate spike for AWS readings
@@ -244,5 +324,47 @@ void ReConverterN2kJson::HandleEnvParams(const tN2kMsg &N2kMsg)
 
 void ReConverterN2kJson::HandleLog(const tN2kMsg& N2kMsg) 
 {
-  ParseN2kDistanceLog(N2kMsg, m_data.DaysSince1970, m_data.GPSTime, m_data.Log, m_data.TripLog);
+   ParseN2kDistanceLog(N2kMsg, m_data.DaysSince1970, m_data.GPSTime, m_data.Log, m_data.TripLog);
+}
+
+void ReConverterN2kJson::HandleNavigationData(const tN2kMsg& N2kMsg)
+{
+   unsigned char SID;
+   double DistanceToWaypoint;
+   tN2kHeadingReference BearingReference;
+   bool PerpendicularCrossed;
+   bool ArrivalCircleEntered;
+   tN2kDistanceCalculationType CalculationType;
+   double ETATime;
+   int16_t ETADate;
+   double BearingOriginToDestinationWaypoint;
+   double BearingPositionToDestinationWaypoint;
+   uint32_t OriginWaypointNumber;
+   uint32_t DestinationWaypointNumber;
+   double DestinationLatitude;
+   double DestinationLongitude;
+   double WaypointClosingVelocity;
+
+   if (ParseN2kNavigationInfo(N2kMsg, SID, DistanceToWaypoint, BearingReference, PerpendicularCrossed, ArrivalCircleEntered, 
+      CalculationType, ETATime, ETADate, BearingOriginToDestinationWaypoint, BearingPositionToDestinationWaypoint,
+      OriginWaypointNumber, DestinationWaypointNumber, DestinationLatitude, DestinationLongitude, WaypointClosingVelocity))
+   {
+      if (BearingReference == N2khr_magnetic)
+      {
+         m_data.WPTBRGMag = BearingPositionToDestinationWaypoint;
+         m_data.WPTBRG = m_data.WPTBRGMag + m_data.Variation; // WPTBRG will store the TRUE WPTBRG
+      }
+      else if (BearingReference == N2khr_true)
+      {
+         m_data.WPTBRG = BearingPositionToDestinationWaypoint;
+         m_data.WPTBRGMag = m_data.WPTBRG - m_data.Variation;
+      }
+      else
+      {
+         // possible N2khr_error or N2khr_Unavailable
+         return;
+      }
+
+      m_data.WPTDST = DistanceToWaypoint;
+   }
 }

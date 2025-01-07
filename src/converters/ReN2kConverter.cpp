@@ -18,8 +18,8 @@ void ReN2kConverter::handleSytemTime(const tN2kMsg& N2kMsg)
    ParseN2kSystemTime(N2kMsg, sID, m_daysSince1970, m_secondsSinceMidnight, timeSource);
 }
 
-void ReN2kConverter::calculateWindData(const double& AWAinRad, const double& AWSinMs, const double& STWinMs, 
-   const double& HDGinRad, double& TWAinRad, double& TWDinRad, double& TWSinMs)
+void ReN2kConverter::calculateWindData(const double& AWAinRad, const double& AWSinMs, const double& STWorSOGinMs, 
+   const double& HDGorCOGinRad, double& TWAinRad, double& TWDinRad, double& TWSinMs)
 {
    // Calculate true wind speed (TWS) and true wind angle (TWA)
    // Resolve the Apparent Wind Vector into x and y components:
@@ -27,7 +27,7 @@ void ReN2kConverter::calculateWindData(const double& AWAinRad, const double& AWS
    double AWA_y = AWSinMs * sin(AWAinRad);
 
    // Calculate the True Wind Vector components by subtracting the Boat Speed Vector
-   double TWA_x = AWA_x - STWinMs;
+   double TWA_x = AWA_x - STWorSOGinMs;
    double TWA_y = AWA_y;
 
    // Combine the True Wind Vector components to calculate the True Wind Speed (TWS)
@@ -45,7 +45,7 @@ void ReN2kConverter::calculateWindData(const double& AWAinRad, const double& AWS
    }
 
    // Calculate true wind direction TWD
-   double TWDinDeg = RadToDeg(TWAinRad) + RadToDeg(HDGinRad);
+   double TWDinDeg = RadToDeg(TWAinRad) + RadToDeg(HDGorCOGinRad);
    if (TWDinDeg > 360) TWDinDeg = TWDinDeg - 360;
    if (TWDinDeg < 0) TWDinDeg = TWDinDeg + 360;
 

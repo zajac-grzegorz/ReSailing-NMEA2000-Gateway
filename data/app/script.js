@@ -233,7 +233,7 @@ if (!!window.EventSource) {
     data.aws = objData.AWS;
     data.twa = objData.TWA;
     data.tws = objData.TWS;
-    data.hdg = objData.Heading;
+    data.hdg = objData.HDG;
     
     updateInstrument(data);
   }, false);

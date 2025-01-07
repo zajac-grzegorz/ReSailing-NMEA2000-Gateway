@@ -3,10 +3,12 @@
 #include "ReBoatData.h"
 
 double ReBoatData::Heading = 0;
+double ReBoatData::HeadingMag = 0;
 double ReBoatData::Latitude = 0;
 double ReBoatData::Longitude = 0;
 double ReBoatData::SOG = 0;
 double ReBoatData::COG = 0;
+double ReBoatData::COGMag = 0;
 double ReBoatData::STW = 0;
 double ReBoatData::AWS = 0;
 double ReBoatData::TWS = 0;
@@ -15,6 +17,10 @@ double ReBoatData::MaxTws = 0;
 double ReBoatData::AWA = 0;
 double ReBoatData::TWA = 0;
 double ReBoatData::TWD = 0;
+double ReBoatData::TWDMag = 0;
+double ReBoatData::WPTBRG = 0;
+double ReBoatData::WPTBRGMag = 0;
+double ReBoatData::WPTDST = 0;
 uint32_t ReBoatData::TripLog = 0;
 uint32_t ReBoatData::Log = 0;
 double ReBoatData::RudderPosition = 0;
@@ -32,19 +38,25 @@ void ReBoatData::toJSON()
 {
    doc.clear();
    
-   doc["Heading"] = round(RadToDeg(Heading));
-   doc["Latitude"] = Latitude;
-   doc["Longitude"] = Longitude;
+   doc["HDG"] = round(RadToDeg(Heading));
+   doc["MHDG"] = round(RadToDeg(HeadingMag));
+   doc["Lat"] = Latitude;
+   doc["Lon"] = Longitude;
    doc["SOG"] = roundDouble(msToKnots(SOG));
    doc["COG"] = round(RadToDeg(COG));
+   doc["MCOG"] = round(RadToDeg(COGMag));
    doc["STW"] = roundDouble(msToKnots(STW));
    doc["AWS"] = roundDouble(msToKnots(AWS));
    doc["TWS"] = roundDouble(msToKnots(TWS));
-   doc["MaxAws"] = roundDouble(msToKnots(MaxAws));
-   doc["MaxTws"] = roundDouble(msToKnots(MaxTws));
+   doc["MaxAWS"] = roundDouble(msToKnots(MaxAws));
+   doc["MaxTWS"] = roundDouble(msToKnots(MaxTws));
    doc["AWA"] = round(RadToDeg(AWA));
    doc["TWA"] = round(RadToDeg(TWA));
    doc["TWD"] = round(RadToDeg(TWD));
+   doc["MTWD"] = round(RadToDeg(TWDMag));
+   doc["WPTBRG"] = round(RadToDeg(WPTBRG));
+   doc["MWPTBRG"] = round(RadToDeg(WPTBRGMag));
+   doc["WPTDST"] = roundDouble(WPTDST);
    doc["TripLog"] = roundDouble(TripLog);
    doc["Log"] = roundDouble(Log);
    doc["RudderPosition"] = round(RadToDeg(RudderPosition));

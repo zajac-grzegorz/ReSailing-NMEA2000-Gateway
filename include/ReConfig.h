@@ -26,6 +26,7 @@ const unsigned long receiveMessages[] PROGMEM =
    130310L,     // Environment (Water, Pressure)
    128275UL,    // Log
    127245UL,    // Rudder
+   129284UL,    // Navigation Data 
    0
 };
 

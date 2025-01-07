@@ -39,5 +39,8 @@
 
     "sys_restore": "false",
     "sys_webserial": "true",
-    "sys_evt_int": "1000"
+    "sys_evt_int": "1000",
+    "sys_dir_type": "magnetic",
+    "wnd_calc_spd": "sog",
+    "wnd_calc_hdg": "hdg"
 }

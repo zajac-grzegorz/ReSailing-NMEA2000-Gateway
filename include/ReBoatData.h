@@ -10,10 +10,12 @@ public:
    double roundDouble(double a);
 
    static double Heading;
+   static double HeadingMag;
    static double Latitude;
    static double Longitude;
    static double SOG;
    static double COG;
+   static double COGMag;
    static double STW;
    static double AWS;
    static double TWS;
@@ -22,6 +24,10 @@ public:
    static double AWA;
    static double TWA;
    static double TWD;
+   static double TWDMag;
+   static double WPTBRG;
+   static double WPTBRGMag;
+   static double WPTDST;
    static uint32_t TripLog;
    static uint32_t Log;
    static double RudderPosition;
