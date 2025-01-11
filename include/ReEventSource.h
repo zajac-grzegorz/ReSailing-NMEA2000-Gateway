@@ -22,5 +22,5 @@ private:
     unsigned long mUpdatePeriod;
     int mNumClients = 0;
 
-    CorsMiddleware mCors;
+    AsyncCorsMiddleware mCors;
 };

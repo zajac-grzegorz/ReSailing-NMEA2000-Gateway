@@ -212,7 +212,8 @@ void ReConverterN2kNmea0183::HandleHeading(const tN2kMsg& N2kMsg)
       }
       LastHeadingTime = millis();
 
-      if (NMEA0183SetHDG(NMEA0183Msg, Heading, _Deviation, Variation))
+      // HDG message holds value from magnetic sensor, so need to provide magnetic heading
+      if (NMEA0183SetHDG(NMEA0183Msg, Heading - Variation, _Deviation, Variation))
       {
          SendMessage(NMEA0183Msg);
       }
@@ -357,6 +358,15 @@ void ReConverterN2kNmea0183::HandleWind(const tN2kMsg& N2kMsg)
       if (WindReference == N2kWind_Apparent)
       {
          NMEA0183Reference = NMEA0183Wind_Apparent;
+      }
+      else if (WindReference == N2kWind_True_water)
+      {
+         NMEA0183Reference = NMEA0183Wind_True;
+      }
+      else
+      {
+         // consider adding wind conversion for NMEA0183 handler
+         return;
       }
 
       if (NMEA0183SetMWV(NMEA0183Msg, RadToDeg(WindAngle), NMEA0183Reference, WindSpeed))

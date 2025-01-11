@@ -33,13 +33,15 @@ sock.bind((IP, PORT))
 
 print(f"Listening on {IP}:{PORT} and writing data to {full_filename} in {MODE} mode")
 
-with open(full_filename, file_mode) as f:
-    while True:
-        data, addr = sock.recvfrom(1024)
-        if MODE == "text":
-            f.write(data.decode('utf-8'))
-        elif MODE == "binary":
-            f.write(data)
+try:
+    with open(full_filename, file_mode) as f:
+        while True:
+            data, addr = sock.recvfrom(1024)
+            if MODE == "text":
+                f.write(data.decode('utf-8'))
+            elif MODE == "binary":
+                f.write(data)
+except:
+    sock.close()
+    print(f"Connection to {IP}:{PORT} closed")
 
-sock.close()
-print(f"Connection to {IP}:{PORT} closed")
