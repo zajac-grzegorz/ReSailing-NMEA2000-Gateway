@@ -1,5 +1,6 @@
 #pragma once
 
+#include <tuple>
 #include <IPAddress.h>
 #include "ReStorageKeys.h"
 
@@ -44,14 +45,15 @@ enum class ReOutputFormat
    OUT_N2K_SEASMART           // SeaSmart format
 };
 
-// inline std::map<std::string, ReOutputFormat> fmtMap = {
-//    { "nmea0183", ReOutputFormat::OUT_NMEA0183 },
-//    { "json", ReOutputFormat::OUT_JSON },
-//    { "n2k_ngt", ReOutputFormat::OUT_N2K_NGT },
-//    { "n2k_raw", ReOutputFormat::OUT_N2K_RAW },
-//    { "n2k_bin", ReOutputFormat::OUT_N2K_BIN },
-//    { "n2k_ascii", ReOutputFormat::OUT_N2K_ASCII },
-//    { "n2k_ascii_raw", ReOutputFormat::OUT_N2K_ASCII_RAW },
-//    { "n2k_yd", ReOutputFormat::OUT_N2K_ASCII_RAW },
-//    { "seasmart", ReOutputFormat::OUT_N2K_SEASMART }
+// inline std::vector<std::tuple<std::string, ReOutputFormat> > fmtVect = 
+// {
+//    std::make_tuple("nmea0183", ReOutputFormat::OUT_NMEA0183),
+//    std::make_tuple("json", ReOutputFormat::OUT_JSON),
+//    std::make_tuple("n2k_ngt", ReOutputFormat::OUT_N2K_NGT),
+//    std::make_tuple("n2k_raw", ReOutputFormat::OUT_N2K_RAW),
+//    std::make_tuple("n2k_bin", ReOutputFormat::OUT_N2K_BIN),
+//    std::make_tuple("n2k_ascii", ReOutputFormat::OUT_N2K_ASCII),
+//    std::make_tuple("n2k_ascii_raw", ReOutputFormat::OUT_N2K_ASCII_RAW),
+//    std::make_tuple("n2k_yd", ReOutputFormat::OUT_N2K_ASCII_RAW),
+//    std::make_tuple("seasmart", ReOutputFormat::OUT_N2K_SEASMART)
 // };

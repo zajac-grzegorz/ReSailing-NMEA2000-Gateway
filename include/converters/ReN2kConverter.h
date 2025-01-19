@@ -2,6 +2,7 @@
 
 #include <NMEA2000.h>
 
+#include "ReBoatData.h"
 #include "ReCommon.h"
 #include "ReConfig.h"
 
@@ -27,8 +28,7 @@ protected:
    void getTimeFromN2k(const tN2kMsg& n2kMsg);
    void handleGNSS(const tN2kMsg& N2kMsg);
    void handleSytemTime(const tN2kMsg& N2kMsg);
-   void calculateWindData(const double& AWAinRad, const double& AWSinMs, const double& STWorSOGinMs, 
-      const double& HDGorCOGinRad, double& TWAinRad, double& TWDinRad, double& TWSinMs);
+   void calculateWindData(ReBoatData& boatData, bool useCOG = false, bool useSOG = false);
    unsigned long n2ktoCanID(unsigned char prio, unsigned long pgn, unsigned long src, unsigned char dest);
    void addByteEscapedToBuf(unsigned char byteToAdd, size_t& idx, char* buf, int& byteSum);
    void printBuf(unsigned char len, const unsigned char* pData, bool AddLF);

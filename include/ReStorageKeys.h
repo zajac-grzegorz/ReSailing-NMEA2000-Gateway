@@ -34,6 +34,5 @@ inline const char* key_ser3_fil_val = "ser3_fil_val";
 inline const char* key_sys_restore = "sys_restore";
 inline const char* key_sys_webserial = "sys_webserial";
 inline const char* key_sys_evt_int = "sys_evt_int";
-inline const char* key_sys_dir_type = "sys_dir_type";
 inline const char* key_wnd_calc_spd = "wnd_calc_spd";
 inline const char* key_wnd_calc_hdg = "wnd_calc_hdg";

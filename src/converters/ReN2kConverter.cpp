@@ -18,38 +18,53 @@ void ReN2kConverter::handleSytemTime(const tN2kMsg& N2kMsg)
    ParseN2kSystemTime(N2kMsg, sID, m_daysSince1970, m_secondsSinceMidnight, timeSource);
 }
 
-void ReN2kConverter::calculateWindData(const double& AWAinRad, const double& AWSinMs, const double& STWorSOGinMs, 
-   const double& HDGorCOGinRad, double& TWAinRad, double& TWDinRad, double& TWSinMs)
+void ReN2kConverter::calculateWindData(ReBoatData& boatData, bool useCOG, bool useSOG)
 {
    // Calculate true wind speed (TWS) and true wind angle (TWA)
    // Resolve the Apparent Wind Vector into x and y components:
-   double AWA_x = AWSinMs * cos(AWAinRad);
-   double AWA_y = AWSinMs * sin(AWAinRad);
+   double AWS_x = boatData.AWS * cos(boatData.AWA);
+   double AWS_y = boatData.AWS * sin(boatData.AWA);
+
+   // BS - Boat Speed - by default uses HDG & STW, optionally HDG & SOG or HDG & COG & SOG
+   double BS_x = boatData.STW; 
+   double BS_y = 0;
+
+   if (useSOG)
+   {
+      BS_x = boatData.SOG; 
+   }
+
+   if (useCOG && useSOG)
+   {
+      BS_x = boatData.SOG * cos(boatData.COG - boatData.Heading);
+      BS_y = boatData.SOG * sin(boatData.COG - boatData.Heading);
+   }
 
    // Calculate the True Wind Vector components by subtracting the Boat Speed Vector
-   double TWA_x = AWA_x - STWorSOGinMs;
-   double TWA_y = AWA_y;
+   double TWS_x = AWS_x - BS_x;
+   double TWS_y = AWS_y - BS_y;
 
    // Combine the True Wind Vector components to calculate the True Wind Speed (TWS)
-   TWSinMs = sqrt((TWA_x * TWA_x) + (TWA_y * TWA_y));
+   boatData.TWS = sqrt((TWS_x * TWS_x) + (TWS_y * TWS_y));
 
    // Calculate the True Wind Angle (TWA) using the inverse tangent function
-   TWAinRad = atan2(TWA_y, TWA_x);
+   boatData.TWA = atan2(TWS_y, TWS_x);
 
    // Normalize so the value is always 0-359 degrees
-   double TWAinDeg = RadToDeg(TWAinRad);
+   double TWAinDeg = RadToDeg(boatData.TWA);
    if (TWAinDeg < 0)
    {
       TWAinDeg += 360;
-      TWAinRad = DegToRad(TWAinDeg);
+      boatData.TWA = DegToRad(TWAinDeg);
    }
 
    // Calculate true wind direction TWD
-   double TWDinDeg = RadToDeg(TWAinRad) + RadToDeg(HDGorCOGinRad);
+   double TWDinDeg = RadToDeg(boatData.TWA) + RadToDeg(boatData.Heading);
    if (TWDinDeg > 360) TWDinDeg = TWDinDeg - 360;
    if (TWDinDeg < 0) TWDinDeg = TWDinDeg + 360;
 
-   TWDinRad = DegToRad(TWDinDeg);
+   boatData.TWD = DegToRad(TWDinDeg);
+   // boatData.TWDMag = ??
 }
 
 void ReN2kConverter::handleGNSS(const tN2kMsg& N2kMsg)

@@ -69,6 +69,9 @@ void ReConverterN2kNmea0183::convert(const tN2kMsg& n2kMsg, char* output, size_t
       case 126992UL:
          HandleSystemDateTime(n2kMsg);
          break;
+      case 127245UL:
+         HandleRudderPosition(n2kMsg);
+         break;
       case 127250UL:
          HandleHeading(n2kMsg);
          break;
@@ -127,6 +130,8 @@ ReConverterN2kNmea0183::ReConverterN2kNmea0183()
    Heading = N2kDoubleNA;
    COG = N2kDoubleNA;
    SOG = N2kDoubleNA;
+   WindSpeed = N2kDoubleNA;
+   WindAngle = N2kDoubleNA;
    SecondsSinceMidnight = N2kDoubleNA;
    DaysSince1970 = N2kUInt16NA;
    LastPosSend = 0;
@@ -373,6 +378,32 @@ void ReConverterN2kNmea0183::HandleWind(const tN2kMsg& N2kMsg)
       {
          SendMessage(NMEA0183Msg);
       }
+   }
+}
+
+void ReConverterN2kNmea0183::HandleRudderPosition(const tN2kMsg& N2kMsg)
+{
+   tN2kRudderDirectionOrder rudderDirection;
+   double angleOrder;
+   double rudderPosition;
+   uint8_t instance;
+
+   if (ParseN2kRudder(N2kMsg, rudderPosition, instance, rudderDirection, angleOrder))
+   {
+      if (rudderDirection == N2kRDO_MoveToStarboard)
+      {
+         rudderPosition = -rudderPosition;
+      }
+
+      NMEA0183Msg.Clear();
+
+      if ( !NMEA0183Msg.Init("RSA")) return;
+      if ( !NMEA0183Msg.AddDoubleField(RadToDeg(rudderPosition))) return;
+      if ( !NMEA0183Msg.AddStrField("A")) return;
+      if ( !NMEA0183Msg.AddDoubleField(0.0)) return;
+      if ( !NMEA0183Msg.AddStrField("V")) return;
+  
+      SendMessage(NMEA0183Msg);
    }
 }
 

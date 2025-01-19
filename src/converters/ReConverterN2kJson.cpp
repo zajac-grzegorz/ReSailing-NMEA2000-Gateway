@@ -226,71 +226,42 @@ void ReConverterN2kJson::HandleWind(const tN2kMsg& N2kMsg)
    static double FilteredAWS = 0;
 
    if (ParseN2kWindSpeed(N2kMsg, SID, WindSpeed, WindAngle, WindReference))
-   {      
+   {
       if (WindReference == N2kWind_Apparent)
       {
          m_data.AWA = WindAngle;
          m_data.AWS = WindSpeed;
       }
-      // else if (WindReference == N2kWind_True_North)
-      // {
-      //    m_data.TWD = WindAngle;
-      //    m_data.TWS = WindSpeed;
-      // }
-      // else if (WindReference == N2kWind_Magnetic)
-      // {
-      //    m_data.TWDMag = WindAngle;
-      //    m_data.TWS = WindSpeed;
-      // }
-      // else if ((WindReference == N2kWind_True_water) || (WindReference == N2kWind_True_boat))
-      // {
-      //    m_data.TWA = WindAngle;
-      //    m_data.TWS = WindSpeed;
-      // }
+      else if (WindReference == N2kWind_True_North)
+      {
+         m_data.TWD = WindAngle;
+      }
+      else if (WindReference == N2kWind_Magnetic)
+      {
+         m_data.TWDMag = WindAngle;
+      }
+      else if ((WindReference == N2kWind_True_water) || (WindReference == N2kWind_True_boat))
+      {
+         m_data.TWA = WindAngle;
+         m_data.TWS = WindSpeed;
+      }
       else
       {
          // logger.debug(RE_TAG, "Wind type: %d", WindReference);
-
-         // We are only interested in aparent wind, all others are calculated below
          return;
       }
 
       // Calculations will be made according to parameters set in config json file:
-      // - use magnetic or true values for HDG, COG, TWD
       // - use HDG or COG
       // - use STW or SOG
-      // default ares: true, HDG, STW
+      // default ares: HDG, STW
 
-      bool isDirectionMagnetic = (std::string(config.get(key_sys_dir_type)) == "magnetic");
+      bool useSOG = ("sog" == std::string(config.get(key_wnd_calc_spd)));
+      bool useCOG = ("cog" == std::string(config.get(key_wnd_calc_hdg)));
 
-      double& TWDorMTWD = isDirectionMagnetic ? m_data.TWDMag : m_data.TWD;
-      double STWorSOG = m_data.STW;
-      double HDGorCOG = isDirectionMagnetic ? m_data.HeadingMag : m_data.Heading;
-      
-      std::string wndCalcBoatSpeed = config.get(key_wnd_calc_spd);
-      std::string wndCalcBoatHeading = config.get(key_wnd_calc_hdg);
-
-      if (wndCalcBoatHeading == "cog")
-      {
-         HDGorCOG = isDirectionMagnetic ? m_data.COGMag : m_data.COG;
-         // logger.debug(RE_TAG, "Using %s for wind calculations", isDirectionMagnetic ? "MCOG" : "COG");
-      }
-      else
-      {
-         // logger.debug(RE_TAG, "Using %s for wind calculations", isDirectionMagnetic ? "MHDG" : "HDG");
-      }
-
-      if (wndCalcBoatSpeed == "sog")
-      {
-         STWorSOG = m_data.SOG;
-         // logger.debug(RE_TAG, "Using SOG for wind calculations");
-      }
-      else
-      {
-         // logger.debug(RE_TAG, "Using STW for wind calculations");
-      }
-
-      calculateWindData(m_data.AWA, m_data.AWS, STWorSOG, HDGorCOG, m_data.TWA, TWDorMTWD, m_data.TWS);
+      // calculateWindData(m_data.AWA, m_data.AWS, STWorSOG, HDGorCOG, m_data.TWA, TWDorMTWD, m_data.TWS);
+      // calculateWindData(m_data.AWA, m_data.AWS, STWorSOG, m_data.Heading, m_data.COG, m_data.TWA, TWDorMTWD, m_data.TWS);
+      calculateWindData(m_data, useCOG, useSOG);
 
       // Store max values for AWS and TWS
       // This implements a low pass filter to eliminate spike for AWS readings
